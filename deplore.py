@@ -2,6 +2,8 @@ import xml.etree.ElementTree as et
 import configparser
 import os, sys
 
+# FIND FILES
+
 ini_filename = "deps.ini"
 
 filename = ""
@@ -9,11 +11,11 @@ filename = ""
 ini_exists = False
 
 for file in os.listdir(os.getcwd()):
-    if file.endswith("vcxproj"):
+    if file.endswith("vcxproj") and filename == "":
         print("Found:", file)
         filename = file
 
-    if file == ini_filename:
+    if file == ini_filename and not ini_exists:
         ini_exists = True
 
 if filename == "":
@@ -24,7 +26,16 @@ if not ini_exists:
     input(ini_filename + " does not exist")
     sys.exit(0)
 
+# EXTRACT XML
+
 xmlns = 'http://schemas.microsoft.com/developer/msbuild/2003'
+
+et.register_namespace('', xmlns)
+xmlns = '{' + xmlns + '}'
+tree = et.parse("ProjectTest_original.vcxproj")
+root = tree.getroot()
+
+# CREATE CONFIGS from ini
 
 class Configuration:
     def __init__(self, name):
@@ -43,15 +54,10 @@ class Configuration:
         print(*self.deps, sep = ", ")
         print("---")
 
-et.register_namespace('', xmlns)
-xmlns = '{' + xmlns + '}'
-tree = et.parse("ProjectTest_original.vcxproj")
-root = tree.getroot()
-
 configs = []
 
 def parse_list(_ini, _section, _label):
-    print("Parsing ", _section, _label)
+    #print("Parsing ", _section, _label)
 
     if not _ini[_section].__contains__(_label):
         return []
@@ -62,7 +68,6 @@ def parse_list(_ini, _section, _label):
     for split in _splits:
         split = split.strip()
         if (split != ""):
-            print(split)
             _arr.append(split)
 
     return _arr
@@ -95,13 +100,13 @@ if config_all is not None:
     all_libdirs_joined = ";".join(config_all.libdirs)
     all_deps_joined = ";".join(config_all.deps)
 else:
-    print("ALL not found")
+    print("[ALL] config not found")
 
 # debug configs
 #for config in configs:
     #config.dump()
 
-print("\nTAG\n")
+# PROCESS XML and replace nodes
 
 for child in root.findall(xmlns + "ItemDefinitionGroup"):
     # print(child.get("Condition"))
@@ -110,13 +115,13 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     # configuraiton
     splits = text.split("'")
     config_name = splits[3]
-    print(splits[3])
+    #print(splits[3])
 
     # find a configuration with this name
     config = next((x for x in configs if x.name == config_name), None)
 
     if config is None:
-        print("config not found: ", config_name)
+        print("config not found in ini: ", config_name)
         continue
 
     # Additional Include Directories
@@ -124,10 +129,6 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     xml_includes = xml_clcompile.find(xmlns + "AdditionalIncludeDirectories")
 
     if xml_includes is not None:
-        # split includes by ;
-        for split in xml_includes.text.split(';'):
-            print(split)
-
         includes_joined = ";".join(config.includes)
         includes_joined += ";%(AdditionalIncludeDirectories)"
         if all_includes_joined != "":
@@ -142,7 +143,7 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     xml_libdirs = xml_link.find(xmlns + "AdditionalLibraryDirectories")
 
     if xml_libdirs is not None:
-        print("LIBDIRS:", xml_libdirs.text)
+        #print("LIBDIRS:", xml_libdirs.text)
 
         libdirs_joined = ";".join(config.libdirs)
         libdirs_joined += ";%(AdditionalLibraryDirectories)"
@@ -155,7 +156,7 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     xml_deps = xml_link.find(xmlns + "AdditionalDependencies")
 
     if xml_deps is not None:
-        print("DEPS:", xml_deps.text)
+        #print("DEPS:", xml_deps.text)
 
         deps_joined = ";".join(config.deps)
         deps_joined += ";%(AdditionalDependencies)"
@@ -164,5 +165,8 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
 
         xml_deps.text = deps_joined
 
-
+# SAVE XML to vcxproj
 tree.write(filename, 'utf-8', True)
+
+print("")
+input("Successfully assigned deps to " + filename)
