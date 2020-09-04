@@ -1,7 +1,28 @@
 import xml.etree.ElementTree as et
 import configparser
+import os, sys
 
-filename = 'ProjectTest.vcxproj'
+ini_filename = "deps.ini"
+
+filename = ""
+
+ini_exists = False
+
+for file in os.listdir(os.getcwd()):
+    if file.endswith("vcxproj"):
+        print("Found:", file)
+        filename = file
+
+    if file == ini_filename:
+        ini_exists = True
+
+if filename == "":
+    input("vcxproj not found in this folder")
+    sys.exit(0)
+
+if not ini_exists:
+    input(ini_filename + " does not exist")
+    sys.exit(0)
 
 xmlns = 'http://schemas.microsoft.com/developer/msbuild/2003'
 
@@ -62,6 +83,20 @@ for section in sections:
     for i in range(len(config.includes)):
         config.includes[i] = "$(SolutionDir)" + config.includes[i]
 
+# find ALL config
+config_all = next((c for c in configs if c.name == "ALL"), None)
+
+all_includes_joined = ""
+all_libdirs_joined = ""
+all_deps_joined = ""
+
+if config_all is not None:
+    all_includes_joined = ";".join(config_all.includes)
+    all_libdirs_joined = ";".join(config_all.libdirs)
+    all_deps_joined = ";".join(config_all.deps)
+else:
+    print("ALL not found")
+
 # debug configs
 #for config in configs:
     #config.dump()
@@ -95,6 +130,8 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
 
         includes_joined = ";".join(config.includes)
         includes_joined += ";%(AdditionalIncludeDirectories)"
+        if all_includes_joined != "":
+            includes_joined = all_includes_joined + ";" + includes_joined
         #print("JOINED: ",includes_joined)
 
         xml_includes.text = includes_joined
@@ -109,6 +146,8 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
 
         libdirs_joined = ";".join(config.libdirs)
         libdirs_joined += ";%(AdditionalLibraryDirectories)"
+        if all_libdirs_joined != "":
+            libdirs_joined = all_libdirs_joined + ";" + libdirs_joined
 
         xml_libdirs.text = libdirs_joined
 
@@ -120,18 +159,10 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
 
         deps_joined = ";".join(config.deps)
         deps_joined += ";%(AdditionalDependencies)"
+        if all_deps_joined != "":
+            deps_joined = all_deps_joined + ";" + deps_joined
 
         xml_deps.text = deps_joined
 
 
 tree.write(filename, 'utf-8', True)
-
-    #print(xml_includes.attrib)
-
-    #for c in xml_clcompile:
-        #print(c.tag)
-
-    #AdditionalIncludeDirectories
-
-    # for split in splits:
-    #    print(split)
