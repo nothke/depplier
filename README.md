@@ -70,9 +70,9 @@ libdir =
 3. Run depplier.py
 4. You will get a message in terminal if the application was successful and any messages or errors that might've happened, hit any key to shut it down.
 
-- In case the terminal just flashes, i.e. immediately shuts down without success message, there's a bug!
+- In case the terminal just flashes, i.e. immediately shuts down without success message, there's a bug! Run it in command terminal to see the error message.
 
 ### Not tested
 
-- Using it for personal use. If you find an error, report it so I can fix it!
+- Using it for personal use for now, so use at own risk. If you find an error, report it so I can fix it!
 - If you have a suggestion for more features, contact me as well.
