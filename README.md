@@ -17,15 +17,15 @@ libdir =
 deps =
     SDL2.lib
     SDL2main.lib
-    mydep.lib
+    mylibrary.lib
 
 [Debug|x64]
 libdir =
-    deps\mylib\Debug
+    deps\mylibrary\Debug
 
 [Release|x64]
 libdir =
-    deps\mydep\Debug
+    deps\mylibrary\Release
 
 ```
 
@@ -50,17 +50,17 @@ libdir =
 deps =
     SDL2.lib
     SDL2main.lib
-    mydep.lib
+    mylibrary.lib
 
 // Specific configurations are named as [Configuration|Platform]
 // Will be appended after all deps found in "deps"
 [Debug|x64]
 libdir =
-    deps\mylib\Debug
+    deps\mylibrary\Debug
 
 [Release|x64]
 libdir =
-    deps\mydep\Debug
+    deps\mylibrary\Release
 ```
 
 ### How to use
