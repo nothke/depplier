@@ -19,11 +19,11 @@ for file in os.listdir(os.getcwd()):
         ini_exists = True
 
 if filename == "":
-    input("vcxproj not found in this folder")
+    input(".vcxproj file not found in this folder")
     sys.exit(0)
 
 if not ini_exists:
-    input(ini_filename + " does not exist")
+    input(ini_filename + " does not exist in this folder")
     sys.exit(0)
 
 # EXTRACT XML
@@ -32,7 +32,7 @@ xmlns = 'http://schemas.microsoft.com/developer/msbuild/2003'
 
 et.register_namespace('', xmlns)
 xmlns = '{' + xmlns + '}'
-tree = et.parse("ProjectTest_original.vcxproj")
+tree = et.parse(filename)
 root = tree.getroot()
 
 # CREATE CONFIGS from ini
@@ -88,6 +88,9 @@ for section in sections:
     for i in range(len(config.includes)):
         config.includes[i] = "$(SolutionDir)" + config.includes[i]
 
+    for i in range(len(config.libdirs)):
+        config.libdirs[i] = "$(SolutionDir)" + config.libdirs[i]
+
 # find ALL config
 config_all = next((c for c in configs if c.name == "ALL"), None)
 
@@ -100,13 +103,40 @@ if config_all is not None:
     all_libdirs_joined = ";".join(config_all.libdirs)
     all_deps_joined = ";".join(config_all.deps)
 else:
-    print("[ALL] config not found")
+    print("[ALL] configuration not found, omitting")
+
+#print("All includes:", all_includes_joined)
+#print("All libdirs:", all_libdirs_joined)
+#print("All deps:", all_deps_joined)
 
 # debug configs
 #for config in configs:
     #config.dump()
 
 # PROCESS XML and replace nodes
+
+def serialize_list(strlist, all_joined, additionals):
+    joined = ""
+
+    for strl in strlist:
+        if strl == "":
+            print("FAIL")
+
+    if len(strlist) != 0:
+        joined = ";".join(strlist)
+
+    if all_joined != "":
+        if joined == "":
+            joined = all_joined
+        else:
+            joined = all_joined + ";" + joined
+
+    if joined != "":
+        joined += ";"
+
+    joined += additionals
+
+    return joined
 
 for child in root.findall(xmlns + "ItemDefinitionGroup"):
     # print(child.get("Condition"))
@@ -121,7 +151,7 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     config = next((x for x in configs if x.name == config_name), None)
 
     if config is None:
-        print("config not found in ini: ", config_name)
+        print("Configuration", config_name, "not found in ini, omitting")
         continue
 
     # Additional Include Directories
@@ -129,13 +159,7 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
     xml_includes = xml_clcompile.find(xmlns + "AdditionalIncludeDirectories")
 
     if xml_includes is not None:
-        includes_joined = ";".join(config.includes)
-        includes_joined += ";%(AdditionalIncludeDirectories)"
-        if all_includes_joined != "":
-            includes_joined = all_includes_joined + ";" + includes_joined
-        #print("JOINED: ",includes_joined)
-
-        xml_includes.text = includes_joined
+        xml_includes.text = serialize_list(config.includes, all_includes_joined, "%(AdditionalIncludeDirectories)")
 
     xml_link = child.find(xmlns + "Link")
 
@@ -144,26 +168,14 @@ for child in root.findall(xmlns + "ItemDefinitionGroup"):
 
     if xml_libdirs is not None:
         #print("LIBDIRS:", xml_libdirs.text)
-
-        libdirs_joined = ";".join(config.libdirs)
-        libdirs_joined += ";%(AdditionalLibraryDirectories)"
-        if all_libdirs_joined != "":
-            libdirs_joined = all_libdirs_joined + ";" + libdirs_joined
-
-        xml_libdirs.text = libdirs_joined
+        xml_libdirs.text = serialize_list(config.libdirs, all_libdirs_joined, "%(AdditionalLibraryDirectories)")
 
     # Additional Dependencies
     xml_deps = xml_link.find(xmlns + "AdditionalDependencies")
 
     if xml_deps is not None:
         #print("DEPS:", xml_deps.text)
-
-        deps_joined = ";".join(config.deps)
-        deps_joined += ";%(AdditionalDependencies)"
-        if all_deps_joined != "":
-            deps_joined = all_deps_joined + ";" + deps_joined
-
-        xml_deps.text = deps_joined
+        xml_deps.text = serialize_list(config.deps, all_deps_joined, "%(AdditionalDependencies)")
 
 # SAVE XML to vcxproj
 tree.write(filename, 'utf-8', True)
