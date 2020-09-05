@@ -1,5 +1,5 @@
 # depplier
-Deplier - meaning "dependency applier" - is a script for easier C++ dependancies assignment, made to bypass annoying, 90s design, finnicky Visual Studio properties. 
+Depplier - meaning "dependency applier" - is a script for easier C++ dependancies assignment, made to bypass annoying, 90s design, finnicky Visual Studio properties. 
 
 ### What does it do?
 
