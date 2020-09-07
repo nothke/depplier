@@ -6,7 +6,7 @@ Depplier - meaning "dependency applier" - is a script for easier C++ dependancie
 It uses a plain text ini file where you write your dependencies in a much nicer way and then applies it to your vcxproj file.
 
 Simple sample of deps.ini:
-```
+``` ini
 [ALL]
 include =
     deps\include
@@ -33,13 +33,13 @@ Plain, simple and nice, right?
 
 Explained:
 
-```
+``` ini
 // ALL is a special section that will be applied to all configurations:
 [ALL]
 // "include" corresponds to C++ > General > "Additional Include Directories":
 // all paths are relative to project, i.e. they will have "$(SolutionDir)" automatically prepended
 include =
-    deps\include // note: indentation is important, otherwise configparser won't read it as a single line
+    deps\include // note: indentation is important, otherwise configparser will not read it as a single line
 
 // "libdir" corresponds to Linker > General > "Additional Library Directories":
 libdir =
