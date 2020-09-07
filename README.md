@@ -37,10 +37,9 @@ Explained:
 // ALL is a special section that will be applied to all configurations:
 [ALL]
 // "include" corresponds to C++ > General > "Additional Include Directories":
-// (indentation is important, otherwise configparser won't read is as a single line)
 // all paths are relative to project, i.e. they will have "$(SolutionDir)" automatically prepended
 include =
-    deps\include
+    deps\include // note: indentation is important, otherwise configparser won't read it as a single line
 
 // "libdir" corresponds to Linker > General > "Additional Library Directories":
 libdir =
@@ -53,7 +52,7 @@ deps =
     mylibrary.lib
 
 // Specific configurations are named as [Configuration|Platform]
-// Will be appended after all deps found in "deps"
+// Will be appended after all entries found in [ALL]
 [Debug|x64]
 libdir =
     deps\mylibrary\Debug
