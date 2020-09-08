@@ -1,4 +1,4 @@
-Note: I made this before I found about (premake)[https://github.com/premake/premake-core]. Premake can do exactly this and much much more. I recommend you use it (or other simple build configuration software) instead.
+Note: I made this before I found about [premake](https://github.com/premake/premake-core). Premake can do exactly this and much much more. I recommend you use it (or other simple build configuration software) instead.
 
 # depplier
 Depplier - meaning "dependency applier" - is a script for easier C++ dependancies assignment, made to bypass annoying, 90s design, finnicky Visual Studio properties. 
